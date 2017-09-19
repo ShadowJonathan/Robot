@@ -1,0 +1,4 @@
+*.epub
+*.log
+.idea/**
+node_modules/**
