@@ -12,6 +12,7 @@ const api = require('termux-api');
  */
 const Comms = global.Comms = new (require('./ws'))();
 const modules = require('./modules');
+Comms.setMaxListeners(0);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -36,3 +37,5 @@ router.post('/kickback', (r, rp) => {
 server.listen(8000, (e) => console.log(e));
 
 // START APP
+
+console.log(modules);

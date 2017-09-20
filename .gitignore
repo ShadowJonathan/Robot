@@ -1,6 +1,7 @@
 *.epub
 *.log
-.idea/**
+.idea/
 node_modules/**
+cache/
 uuid
 modules/*.json
