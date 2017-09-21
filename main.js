@@ -8,6 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const router = express.Router();
 const api = require('termux-api');
+require('mkdirp').sync('cache');
 var runningJobs = global.runningJobs = require('persisted-json-object')({file: 'cache/jobs.json'});
 if (!runningJobs.waiting) {
     runningJobs.waiting = {};
@@ -16,7 +17,7 @@ if (!runningJobs.waiting) {
  * @type {Comms}
  */
 const Comms = global.Comms = new (require('./ws'))();
-const modules = require('./modules');
+modules = require('./modules');
 
 Comms.setMaxListeners(0);
 app.use(bodyParser.json());

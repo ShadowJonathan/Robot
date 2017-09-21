@@ -200,7 +200,11 @@ class Story extends events.EventEmitter {
         if (!FSC[data.storyID])
             FSC[data.storyID] = PJO({file: 'cache/ffnet/stories/' + data.storyID + '.json'});
         for (let p in data)
-            FSC[data.storyID][p] = data[p]
+            try {
+                FSC[data.storyID][p] = (data[p])
+            } catch (err) {
+                console.warn(err)
+            }
         FSC[data.storyID].l_u = new Date();
         if (Stories[data.storyID]) {
             Stories[data.storyID].init = true
@@ -245,6 +249,8 @@ class Archive extends events.EventEmitter {
         Categories[cat].attach(this);
         this.setupListeners()
     }
+
+    // TODO SETUP ENTRY DOWNLOADING AND HANDLING
 
     setupListeners() {
         C.ON([{orig: 'ffnet', archive: this.name, category: this.cat.name}, 'meta'], m => {

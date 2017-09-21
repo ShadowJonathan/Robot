@@ -29,10 +29,8 @@ class Comms extends EventEmitter {
                 request(AUTOMATIA_URL + '/register', (e, r, b) => {
                     fs.writeFileSync('uuid', b);
                     this.uuid = b;
-                    this.ON(['login'], () => {
-                        this.send({uuid: this.uuid});
-                        this.emit('connected');
-                    })
+                    this.send({uuid: this.uuid});
+                    this.emit('connected');
                 })
             })
         }
