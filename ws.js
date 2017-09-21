@@ -5,8 +5,8 @@ const co = require('co');
 const fs = require('fs');
 const request = require('request');
 
-const AUTOMATIA_WS = 'ws://automatia.tk/ws';
-//const AUTOMATIA_WS = 'ws://localhost:8080/ws';
+//const AUTOMATIA_WS = 'ws://automatia.tk/ws';
+const AUTOMATIA_WS = 'ws://localhost:8080/ws';
 
 const AUTOMATIA_URL = "http://" + require('url').parse(AUTOMATIA_WS).host;
 
@@ -142,6 +142,10 @@ class Comms extends EventEmitter {
 
     get online() {
         return this.connected
+    }
+
+    get DL_URL() {
+        return AUTOMATIA_URL
     }
 }
 
