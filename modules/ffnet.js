@@ -20,6 +20,7 @@ const PJO = require('persisted-json-object');
 const Download = require('./download');
 const events = require('events');
 const mkdirp = require('mkdirp');
+const fs = require('fs');
 if (meta.queue === undefined) {
     meta.queue = []
 }
@@ -233,7 +234,11 @@ class Archive extends events.EventEmitter {
         this.data = PJO({file: 'cache/ffnet/archives/' + archive + '.json'});
         if (!this.data.info) {
             let msg = {
-                orig: 'ffnet', archive: true, a_url: cat + "/" + archive, info: true, category: this.name
+                orig: 'ffnet',
+                archive: true,
+                a_url: cat + "/" + archive,
+                info: true,
+                category: this.name
             };
             if (C.online) {
                 C.send(msg)
@@ -268,9 +273,48 @@ class Archive extends events.EventEmitter {
                     earliest: new Date(m.earliest),
                     latest: new Date(m.latest),
                     meta: m.meta,
-                }
+                };
+                this.data.updated = new Date()
             }
+        });
+
+        C.ON([{orig: 'ffnet', archive: this.name, category: this.cat.name}, 'registry'], m => {
+            let reg = PJO({file: 'cache/ffnet/archives/' + this.name + '.reg.json'});
+            if (!reg.entries) reg.entries = {};
+
+            for (let e of m.registry) {
+                reg.entries[e.storyID] = e
+            }
+            reg.updated = new Date()
         })
+    }
+
+    static getAllUpdates() {
+        let p = require('path').normalize(__dirname + '/../cache/ffnet/archives');
+        let files = fs.readdirSync(p);
+        let archives = {};
+
+        for (let file of files) {
+            let r = /^(.*?)\.(reg\.)?json$/.exec(file);
+            if (!archives[r[1]]) {
+                archives[r[1]] = {reg: false, name: r[1]}
+            }
+            if (r[2]) {
+                archives[r[1]].reg = true
+            }
+        }
+
+        let info = {};
+        let jsonfile = require('jsonfile');
+        for (let a of Object.keys(archives)) {
+            a = archives[a];
+            info[a.name] = {
+                meta: new Date(jsonfile.readFileSync(p + '/' + a.name + '.json').updated),
+                reg: a.reg && new Date(jsonfile.readFileSync(p + '/' + a.name + '.reg.json').updated) || null
+            }
+        }
+
+        return info
     }
 }
 

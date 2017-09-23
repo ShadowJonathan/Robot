@@ -19,4 +19,4 @@ class FFnetNotification {
     }
 }
 
-module.exports = {NotificationBuilder};
+module.exports = { NotificationBuilder };

@@ -21,7 +21,7 @@ class Comms extends EventEmitter {
         try {
             this.uuid = String(fs.readFileSync('uuid'));
             this.ON(['login'], () => {
-                this.send({uuid: this.uuid});
+                this.send({ uuid: this.uuid });
                 this.emit('connected');
             })
         } catch (err) {
@@ -29,7 +29,7 @@ class Comms extends EventEmitter {
                 request(AUTOMATIA_URL + '/register', (e, r, b) => {
                     fs.writeFileSync('uuid', b);
                     this.uuid = b;
-                    this.send({uuid: this.uuid});
+                    this.send({ uuid: this.uuid });
                     this.emit('connected');
                 })
             })
@@ -93,7 +93,7 @@ class Comms extends EventEmitter {
     }
 
     _startprocess() {
-        co(function* () {
+        co(function*() {
             while (this.online) {
                 const v = yield this.in.recv();
                 if (!v)
