@@ -112,6 +112,10 @@ class Comms extends EventEmitter {
         this.in.send(o)
     }
 
+    resend(m) {
+        this._handleMsg(m)
+    }
+
     kick() {
         if (this.ws) return;
         try {

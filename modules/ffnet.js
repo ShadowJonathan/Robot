@@ -113,6 +113,12 @@ C.ON([
     Story.got_meta(m.meta)
 });
 
+C.ON([
+    {orig: 'ffnet', get_stamps: true}
+], () => {
+    C.send({data: Archive.getAllUpdates(), orig: 'ffnet', stamps: true})
+});
+
 function dl_callback(j_id) {
     delete meta.jobs[j_id];
     console.log(j_id, "done")
@@ -233,6 +239,7 @@ class Archive extends events.EventEmitter {
          */
         this.data = PJO({file: 'cache/ffnet/archives/' + archive + '.json'});
         if (!this.data.info) {
+            this.init = false;
             let msg = {
                 orig: 'ffnet',
                 archive: true,
@@ -247,6 +254,7 @@ class Archive extends events.EventEmitter {
                 flush()
             }
         } else {
+            this.init = true;
             this.data.info.earliest = new Date(this.data.info.earliest);
             this.data.info.latest = new Date(this.data.info.latest);
         }
@@ -254,8 +262,6 @@ class Archive extends events.EventEmitter {
         Categories[cat].attach(this);
         this.setupListeners()
     }
-
-    // TODO SETUP ENTRY DOWNLOADING AND HANDLING
 
     setupListeners() {
         C.ON([{orig: 'ffnet', archive: this.name, category: this.cat.name}, 'meta'], m => {
@@ -279,14 +285,25 @@ class Archive extends events.EventEmitter {
         });
 
         C.ON([{orig: 'ffnet', archive: this.name, category: this.cat.name}, 'registry'], m => {
+            if (!m.registry)
+                this.requestRegistry();
             let reg = PJO({file: 'cache/ffnet/archives/' + this.name + '.reg.json'});
             if (!reg.entries) reg.entries = {};
 
-            for (let e of m.registry) {
+            for (let e of m.registry)
                 reg.entries[e.storyID] = e
-            }
             reg.updated = new Date()
         })
+    }
+
+    requestRegistry() {
+        C.send({
+            orig: 'ffnet',
+            archive: true,
+            a_url: this.cat.name + "/" + this.name,
+            getreg: true,
+            category: this.name
+        });
     }
 
     static getAllUpdates() {
@@ -308,8 +325,11 @@ class Archive extends events.EventEmitter {
         let jsonfile = require('jsonfile');
         for (let a of Object.keys(archives)) {
             a = archives[a];
+            let a_data = jsonfile.readFileSync(p + '/' + a.name + '.json');
+            let cat = /^\/(\w+)\/.*/.exec(a_data.info.meta.url)[1];
             info[a.name] = {
-                meta: new Date(jsonfile.readFileSync(p + '/' + a.name + '.json').updated),
+                meta: new Date(a_data.updated),
+                cat,
                 reg: a.reg && new Date(jsonfile.readFileSync(p + '/' + a.name + '.reg.json').updated) || null
             }
         }
@@ -354,6 +374,21 @@ class Category {
         C.ON([{orig: 'ffnet', category: this.name, get_latest_date: true}], () => {
             C.send({orig: 'ffnet', latest_date: this.data.update, category: this.name})
         });
+
+        // FALLBACK LISTENERS FOR ARCHIVES
+        C.ON([{orig: 'ffnet', category: this.name}, 'meta', 'archive'], m => {
+            if (!this.archives[m.archive] && this.hasArchive(m.archive)) {
+                new Archive(this.name, m.archive);
+                C.resend(m)
+            }
+        });
+
+        C.ON([{orig: 'ffnet', category: this.name}, 'registry', 'archive'], m => {
+            if (!this.archives[m.archive] && this.hasArchive(m.archive)) {
+                new Archive(this.name, m.archive);
+                C.resend(m)
+            }
+        })
     }
 
     attach(archive) {

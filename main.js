@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 const app = express();
 const server = http.createServer(app);
 const router = express.Router();
+const WebSocket = require('ws');
+const wss = WSS = new WebSocket.Server({server});
 const api = require('termux-api');
 require('mkdirp').sync('cache');
 var runningJobs = global.runningJobs = require('persisted-json-object')({ file: 'cache/jobs.json' });
@@ -35,6 +37,7 @@ var kickbacks = {};
 app.use(router);
 try {
     app.use('/static', express.static(__dirname + '/static'));
+    app.use('/', express.static(__dirname + '/web/'));
 } catch (err) {}
 router.post('/kickback', (r, rp) => {
     console.log(r.body);
@@ -42,5 +45,9 @@ router.post('/kickback', (r, rp) => {
 });
 
 server.listen(8000, (e) => console.log(e));
+
+wss.on('connection', function connection(ws, req) {
+    console.log(req.connection.remoteAddress)
+});
 
 // START APP
