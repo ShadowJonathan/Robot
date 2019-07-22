@@ -78,7 +78,7 @@ C.on('connected', () => {
             if (meta.jobs[k].dl)
                 continue;
             let s = new Story(meta.jobs[k], k);
-            let d = () => {
+            /*let d = () => {
                 C.send({orig: 'ffnet', get_job: true, j_id: k});
                 C.ONCE(['job_result', {j_id: k}], m => {
                     if (m.job_result && typeof m.job_result != 'string') {
@@ -92,7 +92,7 @@ C.on('connected', () => {
                     }
                 })
             };
-            d()
+            d()*/
         }
     }
 });
